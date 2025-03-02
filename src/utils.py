@@ -13,7 +13,7 @@ client.auth.universal_auth.login(
 def get_secret(name):
     return client.secrets.get_secret_by_name(
         secret_name=name,
-        project_id="c80e4993-adcd-4360-a378-4e6476dd75e9",
+        project_id=c["project_id"],
         environment_slug="prod",
         secret_path="/",
     ).secret.secret_value

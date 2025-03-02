@@ -22,5 +22,7 @@ def backup_openwrt():
 # # On recent clients, it may be necessary to use the -O flag for compatibility reasons
 # scp -O root@openwrt.lan:/tmp/backup-*.tar.gz .
 
+# - ssh to openwrt, dump config + pkgs, copy over to spark, 
+
 if __name__ == "__main__":
     backup_openwrt()

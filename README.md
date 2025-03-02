@@ -1,13 +1,31 @@
 # tiny-spider
 
-scheduled tasks related to homelab
+scheduled tasks related to (my) homelab
 
-## Deployment
+## Usage
+
+### Deploying scheduled tasks to a server
 
 ```bash
-./deploy.sh
+./deploy_tasks.sh
+```
+
+### Deploying mac scheduled tasks
+
+```bash
+./deploy_mac.sh
+```
+
+### Running adhoc tasks
+
+```bash
+./run_adhoc.sh
 ```
 
 ## Todo
 
-finish openwrt backup, test docker file and run
+finish openwrt backup
+
+# Inspo for health data
+
+https://github.com/atlaslib/atlas/tree/main

@@ -1,0 +1,7 @@
+# This file was automatically generated
+name: logs
+type: postgres
+options:
+  host: spark
+  port: 5432
+  database: logs

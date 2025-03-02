@@ -6,7 +6,9 @@ from functools import wraps
 
 import cal
 import cf_export
-import guard
+import plug
+
+# import guard
 import requests
 import schedule
 import structlog
@@ -21,17 +23,19 @@ structlog.configure(
     ],
 )
 
-API_KEY = "VpQ59KiLeHVGdg8zYDzE-9hyGfOvq5Ca"  # only works from authorized IP
+API_KEY = "6uSF6XuorPIn_vJYy9KWp7mqkdODsVwS"  # only works from authorized IP
 log = structlog.get_logger()
-URL = "http://192.168.0.200:8002/api/v3/checks/"
+URL = "http://spark:8002/api/v3/checks/"
 
 # todo set default timeout for requests, use exponential backoff for retries
-# use library from same guy as structlog
 
 
 class Job:
-    def __init__(self, id, name, desc, interval=None, daily_time=None, fn=None):
-        self.id = id
+    _id_counter = 1
+
+    def __init__(self, name, desc, interval=None, daily_time=None, fn=None):
+        self.id = Job._id_counter
+        Job._id_counter += 1
         self.name = name
         self.desc = desc
         self.interval = interval
@@ -48,7 +52,7 @@ class Job:
                 "name": self.name,
                 "slug": self.name,
                 "desc": self.desc,
-                "timeout": self.interval,
+                "timeout": self.interval if self.interval else 3600,
                 "grace_period": 60 * 60,
                 "channels": "*",
             }
@@ -86,10 +90,18 @@ def task(func, hc_url):
 
 
 def delete_all_jobs():
-    r = requests.get(URL, headers={"X-Api-Key": API_KEY}).json()
+    r = requests.get(URL, headers={"X-Api-Key": API_KEY})
+    if r.status_code != 200:
+        log.error("Failed to get jobs")
+        return
+
+    r = r.json()
 
     for job in r["checks"]:
         job = job["update_url"].split("/")[-1]
+
+        if job == "57ec0564-d52d-433f-8c81-a98930aae20f":  # skip evidence
+            continue
 
         r = requests.delete(
             f"http://spark:8002/api/v3/checks/{job}", headers={"X-Api-Key": API_KEY}
@@ -128,40 +140,39 @@ def create_or_update_job(jobs):
 if __name__ == "__main__":
     jobs = [
         Job(
-            id=1,
             name="heart_beat",
             desc="heart_beat for scheduler",
             interval=hours_to_seconds(6),
             fn=heart_beat,
         ),
         Job(
-            id=2,
             name="cal",
             desc="Generate contribution calendar",
             interval=hours_to_seconds(48),
             fn=cal.main,
         ),
         Job(
-            id=3,
             name="cf_export",
             desc="Export cloudflare data",
             interval=hours_to_seconds(48),
             fn=cf_export.main,
         ),
         Job(
-            id=4,
-            name="turn_off_social",
-            desc="turn off social media",
-            daily_time="8:30",
-            fn=guard.block,
+            name="plug_pull",
+            desc="Pull power usage data from plugs",
+            interval=60 * 15,
+            fn=plug.pull,
         ),
         Job(
-            id=5,
-            name="turn_on_social",
-            desc="turn on social media",
-            daily_time="14:00",
-            fn=guard.unblock,
+            name="plug_sync",
+            desc="Sync power usage data from plugs",
+            interval=hours_to_seconds(1),
+            fn=plug.sync,
         ),
+        # job everyday at 8Pm to check if vscode or commit has been used for more than 15 min
+        # if no, notify user
+        # For every hour of screentime, 5 minutes of coding would be nice
+        # every morning at 9, send over last days rest heart rate, screen time
     ]
 
     delete_all_jobs()
@@ -178,3 +189,11 @@ if __name__ == "__main__":
             log.info(f"Next job in {n} seconds")
             time.sleep(n)
         schedule.run_pending()
+
+
+# hello.deploy(
+#     name,
+#     schedule
+#     extra_packages=["duckdb"],
+# )
+# make a way to add jobs + package dependencies without having to modify and redeploy

@@ -1,0 +1,7 @@
+# This file was automatically generated
+name: apple
+type: postgres
+options:
+  database: apple_db
+  host: spark
+  port: 5432

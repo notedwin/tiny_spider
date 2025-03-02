@@ -9,3 +9,7 @@ wheels/
 # Virtual environments
 .venv
 .env
+alternatives/
+.vscode/
+apple_health_export/
+.DS_Store

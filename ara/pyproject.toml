@@ -1,0 +1,21 @@
+[project]
+name = "aranet"
+version = "0.1.0"
+description = "rsp zero to pull sensor data"
+requires-python = ">=3.11"
+dependencies = []
+
+# without this, your rsp will crash lol
+[tool.uv]
+prerelease = "allow"
+concurrent-builds = 1
+concurrent-downloads = 1
+concurrent-installs = 1
+environments = ["sys_platform == 'linux'"]
+
+[[tool.uv.index]]
+# Optional name for the index.
+name = "piwheels"
+# Required URL for the index.
+url = "https://www.piwheels.org/simple"
+default = true
